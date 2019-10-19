@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 import time
+import json
 import logging
 import configparser
+from datetime import datetime
 
 from atlas import AtlasPH
 from temperature import Temperature
@@ -21,5 +23,7 @@ if __name__ == "__main__":
 
     while True:
         temps = temp_sensors.read_all()
+        temps['_timestamp'] = str(datetime.now())
         print(temps)
-        time.sleep(5)
+        mqtt.publish(config['temperature']['mqtt_topic'], json.dumps(temps))
+        time.sleep(60)
