@@ -20,6 +20,6 @@ if __name__ == "__main__":
     temp_sensors = Temperature(config['temperature'])
 
     while True:
-        temp = temp_sensors.read()
-        print(temp)
+        temps = temp_sensors.read_all()
+        print(temps)
         time.sleep(5)

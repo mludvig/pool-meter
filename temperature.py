@@ -10,12 +10,21 @@ class Temperature:
         
         ow.init(config['server'])
         self.sensors = ow.Sensor('/').sensorList()
+        self.addrs = {}
         for sensor in self.sensors:
             print('Address: ' + sensor.address)
-            print('Family: ' + sensor.family)
-            print('ID: ' + sensor.id)
-            print('Type: ' + sensor.type)
+            print('Family:  ' + sensor.family)
+            print('ID:      ' + sensor.id)
+            print('Type:    ' + sensor.type)
+            print('Temper:  ' + sensor.temperature)
             print(' ')
+            self.addrs[sensor.address] = sensor
 
-    def read(self):
-        return self.sensors[0].temperature
+    def read(self, addr):
+        return self.addrs[addr].temperature
+
+    def read_all(self):
+        ret = {}
+        for sensor in self.sensors:
+            ret[sensor.address] = float(sensor.temperature)
+        return ret
