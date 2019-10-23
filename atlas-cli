@@ -1,0 +1,42 @@
+#!/usr/bin/python3
+
+from atlas import AtlasPH_I2C
+        
+if __name__ == '__main__':
+    device = AtlasPH_I2C()  # creates the I2C port object, specify the address or bus if necessary
+
+    print("Type Atlas-pH commands (e.g. 'R')")
+    while True:
+        try:
+            command = input("pH> ")
+        except EOFError:
+            print("\n")
+            device.close()
+            quit()
+
+        if not command.strip():
+            continue
+
+        if command == '?':
+            print("^D = exit, C = continuous reading, ? = help, any other command is passed through")
+            continue
+
+        if command.lower().startswith('baud'):
+            print("ERROR: don't try to switch back to UART mode")
+            continue
+
+        if command.lower() == 'c':
+            print("Press ^C to stop")
+            while True:
+                try:
+                    success, retval = device.query('R')
+                    if not success:
+                        print(f"ERROR: {retval}")
+                    print(f"{retval}")
+                except KeyboardInterrupt:
+                    break
+            continue
+
+        success, retval = device.query(command)
+        print(f"{success}: {retval}")
+        continue
