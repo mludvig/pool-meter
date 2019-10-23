@@ -1,0 +1,14 @@
+[ph]
+type = atlas
+mode = i2c
+addr = 0x63
+bus = 1
+
+[temperature]
+mode = owserver
+server = localhost:4304
+aliases = {"28FFA0D66315029D": "water", "28FF2AAD631502D7": "wall", "28FF75D863150204": "air"}
+
+[mqtt]
+server = test.mosquitto.org
+topic = some/topic/pool
