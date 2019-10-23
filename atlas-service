@@ -6,13 +6,18 @@ import logging
 import configparser
 from datetime import datetime
 
+logging.basicConfig(level=logging.DEBUG)
+
+logging.info("Pool pH and temperature meter.")
+
 from atlas import AtlasPH_I2C
 from temperature import Temperature
 from mqtt import MQTT
 
-config_ini = "config.ini"
-
-logging.basicConfig(level=logging.DEBUG)
+try:
+    config_ini = sys.argv[1]
+except:
+    config_ini = "config.ini"
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
@@ -31,6 +36,6 @@ if __name__ == "__main__":
         }
         result['temperature'] = temp_sensors.read_all()
         result['ph'] = ph_sensor.read_ph()
-        print(result)
+        print(result, flush=True)
         mqtt.publish(config['mqtt']['topic'], json.dumps(result))
         time.sleep(60)
