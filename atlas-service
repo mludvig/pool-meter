@@ -31,8 +31,9 @@ if __name__ == "__main__":
     )
 
     while True:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         result = {
-            '_timestamp': str(datetime.now())
+            '_timestamp': timestamp
         }
         result['temperature'] = temp_sensors.read_all()
         result['ph'] = ph_sensor.read_ph()
