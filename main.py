@@ -6,7 +6,7 @@ import logging
 import configparser
 from datetime import datetime
 
-from atlas import AtlasPH
+from atlas import AtlasPH_I2C
 from temperature import Temperature
 from mqtt import MQTT
 
@@ -20,10 +20,17 @@ if __name__ == "__main__":
 
     mqtt = MQTT(config['mqtt'])
     temp_sensors = Temperature(config['temperature'])
+    ph_sensor = AtlasPH_I2C(
+        address = int(config['ph']['addr'], 0),
+        bus = int(config['ph']['bus'], 0)
+    )
 
     while True:
-        temps = temp_sensors.read_all()
-        temps['_timestamp'] = str(datetime.now())
-        print(temps)
-        mqtt.publish(config['temperature']['mqtt_topic'], json.dumps(temps))
+        result = {
+            '_timestamp': str(datetime.now())
+        }
+        result['temperature'] = temp_sensors.read_all()
+        result['ph'] = ph_sensor.read_ph()
+        print(result)
+        mqtt.publish(config['mqtt']['topic'], json.dumps(result))
         time.sleep(60)
