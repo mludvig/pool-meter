@@ -15,7 +15,11 @@ class Temperature:
 
         # Connect to the server and list probes
         ow.init(config['server'])
+
+        # Enumerate all sensors
         self.sensors = ow.Sensor('/').sensorList()
+
+    def display_sensors(self):
         for sensor in self.sensors:
             print('Address:   ' + sensor.address)
             if sensor.address in self.aliases:
@@ -33,5 +37,5 @@ class Temperature:
                 sensor_id = self.aliases[sensor.address]
             else:
                 sensor_id = sensor.address
-            ret[sensor_id] = float(sensor.temperature)
+            ret[sensor_id] = round(float(sensor.temperature), 1)
         return ret
