@@ -1,0 +1,23 @@
+## systemd unit file
+# Install:
+# - sudo cp systemd.atlas.service /etc/systemd/system/atlas.service
+# - Update the path in "ExecStart" and "WorkingDirectory" below
+# - sudo chmod 644 /etc/systemd/system/atlas.service
+# - sudo systemctl daemon-reload
+# - sudo systemctl enable --now atlas.service
+
+[Unit]
+Description=Atlas pH and temperature meter
+
+[Service]
+Type=simple
+NotifyAccess=all
+WorkingDirectory=/home/pi/atlas
+ExecStart=/home/pi/atlas/atlas-service
+Restart=on-failure
+User=pi
+Group=pi
+
+[Install]
+WantedBy=multi-user.target
+Requires=owserver.socket
