@@ -32,6 +32,7 @@ if __name__ == "__main__":
 
     last_ph = 0
     while True:
+        time_start = time.time()
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         # Measure and send Temperature in every iteration
         result = {
@@ -52,4 +53,6 @@ if __name__ == "__main__":
             print(result, flush=True)
             mqtt.publish(config['ph']['topic'], json.dumps(result))
 
-        time.sleep(60)
+        # Compensate for the variable processing times
+        time_spent = time.time() - time_start
+        time.sleep(60 - time_spent % 60)
