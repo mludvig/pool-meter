@@ -31,12 +31,13 @@ if __name__ == "__main__":
     )
 
     last_ph = 0
+    time_start = time.time()
+
     while True:
-        time_start = time.time()
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         # Measure and send Temperature in every iteration
         result = {
-            '_timestamp': timestamp
+            'timestamp': timestamp
         }
         result['temperature'] = temp_sensors.read_all()
         print(result, flush=True)
@@ -45,7 +46,7 @@ if __name__ == "__main__":
         # Measure and send pH if time is up
         if last_ph < time.time() - int(config['ph']['rate_sec']):
             result = {
-                '_timestamp': timestamp
+                'timestamp': timestamp
             }
             # Only measure pH every 'ph_rate_sec' seconds
             result['ph'] = ph_sensor.read_ph()
@@ -53,6 +54,6 @@ if __name__ == "__main__":
             print(result, flush=True)
             mqtt.publish(config['ph']['topic'], json.dumps(result))
 
-        # Compensate for the variable processing times
-        time_spent = time.time() - time_start
-        time.sleep(60 - time_spent % 60)
+        # Sleep until the next minute is up
+        time_sleep = 60 - (time.time() - time_start) % 60
+        time.sleep(time_sleep)
