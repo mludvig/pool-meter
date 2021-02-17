@@ -19,16 +19,58 @@ try:
 except:
     config_ini = "config.ini"
 
+
+calibration_topic = None
+calibration_enabled = False
+calibration_point = None
+
+def enable_calibration(enable):
+    global calibration_enabled
+    calibration_enabled = enable
+    mqtt.publish(calibration_topic, {"calibration_enabled": calibration_enabled})
+
+    if not calibration_enabled:
+        calibration_point = None
+
+def on_message_callback(*args):
+    global calibration_topic, calibration_point, calibration_enabled
+    message = args[2]
+    if message.topic != calibration_topic:
+        logging.error(f"Unexpected topic: {message.topic}")
+        return
+
+    try:
+        data = json.loads(message.payload)
+    except json.decoder.JSONDecodeError as e:
+        logging.warning(f"JSONDecodeError: message: {message.payload}")
+        logging.warning(f"JSONDecodeError: exception: {e}")
+        return
+
+    if data.get('calibration_enable') in [True, 'True', '"True"']:
+        enable_calibration(True)
+        logging.info("Calibration enabled.")
+
+    elif data.get('calibration_enable') in [False, 'False', '"False"']:
+        enable_calibration(False)
+        logging.info("Calibration disabled.")
+
+    elif data.get('calibration_point') and calibration_enabled:
+        calibration_point = float(data.get('calibration_point'))
+        logging.info(f"Calibration point: {calibration_point}")
+
 if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read(config_ini)
 
-    mqtt = MQTT(config['mqtt'])
+    mqtt = MQTT(config['mqtt'], on_message_callback)
     temp_sensors = Temperature(config['temperature'])
     ph_sensor = AtlasPH_I2C(
         address = int(config['ph']['addr'], 0),
         bus = int(config['ph']['bus'], 0)
     )
+
+    calibration_topic = config['ph']['calibration_topic']
+    mqtt.subscribe(calibration_topic)
 
     last_ph = 0
     time_start = time.time()
@@ -42,6 +84,11 @@ if __name__ == "__main__":
         result['temperature'] = temp_sensors.read_all()
         print(result, flush=True)
         mqtt.publish(config['temperature']['topic'], json.dumps(result))
+
+        if calibration_enabled and calibration_point is not None:
+            logging.info(f"Calibrating mid-point at {calibration_point}")
+            ph_sensor.calibrate_ph("mid", calibration_point)
+            enable_calibration(False)
 
         # Measure and send pH if time is up
         if last_ph < time.time() - int(config['ph']['rate_sec']):

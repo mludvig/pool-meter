@@ -66,3 +66,14 @@ class AtlasPH_I2C:
             print(f"ERROR [pH]: {value}")
             return None
         return round(float(value), 2)
+
+    def calibrate_ph(self, point, ph):
+        if ((point == "mid" and ph >= 6.0 and ph <= 8.0) or
+            (point == "low" and ph >= 3.0 and ph <= 5.0) or
+            (point == "high" and ph >= 9.0 and ph <= 11.0)):
+            success, value = self.query(f"CAL,{point},{ph:.2f}")
+            if not success:
+                print(f"ERROR [pH/calibration]: {value}")
+                return
+        else:
+            print(f"ERROR [pH/calibration]: invalid: point={point}, ph={ph}")
