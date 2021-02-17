@@ -8,19 +8,13 @@ class MQTT:
     def __init__(self, config):
         self.config = config
 
-        self.client = paho.mqtt.client.Client()
-        self.client.enable_logger()
-
         self.server = config['server']
         self.port = config.get('port', 1883)
 
+        self.client = paho.mqtt.client.Client(config.get('client_name', 'atlas-service'))
+        self.client.enable_logger()
+        self.client.connect(self.server, port=self.port)
+        self.client.loop_start()
+
     def publish(self, topic, data):
-        try:
-            paho.mqtt.publish.multiple(
-                [
-                    (topic, data, 1, True),
-                ],
-                hostname=self.server,
-                port=self.port)
-        except socket.error as e:
-            print(f"ERROR publishing to {topic}: {e}")
+        self.client.publish(topic, data, qos=1, retain=True)
