@@ -6,17 +6,19 @@ import paho.mqtt.client
 import paho.mqtt.publish
 
 class MQTT:
-    def __init__(self, config, on_message=None):
+    def __init__(self, config, on_connect=None, on_message=None):
         self.config = config
 
         self.server = config['server']
         self.port = config.get('port', 1883)
 
         self.client = paho.mqtt.client.Client(config.get('client_name', 'atlas-service'))
-        self.client.enable_logger()
-        self.client.connect(self.server, port=self.port)
+        if on_connect is not None:
+            self.client.on_connect = on_connect
         if on_message is not None:
             self.client.on_message = on_message
+        self.client.enable_logger()
+        self.client.connect_async(self.server, port=self.port)
         self.client.loop_start()
 
     def publish(self, topic, data):

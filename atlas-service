@@ -32,9 +32,9 @@ def enable_calibration(enable):
     if not calibration_enabled:
         calibration_point = None
 
-def on_message_callback(*args):
+def on_message_callback(client, userdata, message):
     global calibration_topic, calibration_point, calibration_enabled
-    message = args[2]
+
     if message.topic != calibration_topic:
         logging.error(f"Unexpected topic: {message.topic}")
         return
@@ -58,19 +58,25 @@ def on_message_callback(*args):
         calibration_point = float(data.get('calibration_point'))
         logging.info(f"Calibration point: {calibration_point}")
 
+def on_connect_callback(client, userdata, flags, rc):
+    global calibration_topic
+    client.subscribe(calibration_topic)
+
 if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read(config_ini)
 
-    mqtt = MQTT(config['mqtt'], on_message_callback)
+    calibration_topic = config['ph']['calibration_topic']
+
+    mqtt = MQTT(config['mqtt'],
+        on_connect=on_connect_callback,
+        on_message=on_message_callback
+    )
     temp_sensors = Temperature(config['temperature'])
     ph_sensor = AtlasPH_I2C(
         address = int(config['ph']['addr'], 0),
         bus = int(config['ph']['bus'], 0)
     )
-
-    calibration_topic = config['ph']['calibration_topic']
-    mqtt.subscribe(calibration_topic)
 
     last_ph = 0
     time_start = time.time()
